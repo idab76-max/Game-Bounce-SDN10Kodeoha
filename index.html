@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BounceQuiz AI — Sistem Pernapasan Manusia</title>
+<style>
+:root{--ink:#18304b;--muted:#61738a;--paper:#f5f8ff;--blue:#4263eb;--green:#16a36a;--red:#dc4c64;--gold:#ffbf47}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 10% 5%,#dceaff,transparent 30%),radial-gradient(circle at 90% 20%,#ffe7d7,transparent 28%),var(--paper);min-height:100vh}
+button{font:inherit;cursor:pointer}
+.app{max-width:1100px;margin:auto;padding:22px 18px 40px}
+header{background:linear-gradient(120deg,#344fc4,#6a53d8 60%,#8a56cb);color:white;border-radius:24px;padding:24px 26px;box-shadow:0 14px 35px #394ca52b}
+.brand{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;letter-spacing:.02em;margin:0}
+.sub{opacity:.92;margin:5px 0 0}
+.meta{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.meta span{background:#ffffff22;border:1px solid #ffffff40;padding:7px 12px;border-radius:999px;font-size:.9rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:17px 0}
+.stat{background:#fff;border:1px solid #e3eaf7;border-radius:16px;padding:14px 16px;box-shadow:0 5px 18px #263b6410}
+.stat small{display:block;color:var(--muted);font-weight:650}.stat strong{font-size:1.55rem}
+.progress-wrap{height:10px;background:#e1e9f7;border-radius:20px;overflow:hidden;margin-top:9px}
+#progress{height:100%;width:0;background:linear-gradient(90deg,#16b985,#78d66b);transition:width .3s}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 2px 10px}
+h2{font-size:1.25rem;margin:0}.hint{color:var(--muted);font-size:.9rem}
+#arena{position:relative;height:440px;overflow:hidden;border-radius:22px;border:2px solid #dbe5fa;background:linear-gradient(145deg,#e9f4ff,#f4edff 55%,#fff1e4);box-shadow:inset 0 2px 18px #3d5a8910}
+#arena:before,#arena:after{content:"";position:absolute;border-radius:50%;pointer-events:none;background:#fff8;width:170px;height:170px;filter:blur(2px)}
+#arena:before{left:8%;top:10%}#arena:after{right:8%;bottom:5%;width:220px;height:220px}
+.ball{position:absolute;left:0;top:0;width:58px;height:58px;border:3px solid #ffffffc9;border-radius:50%;color:white;font-weight:900;font-size:1.05rem;text-shadow:0 1px 3px #26334c70;box-shadow:0 7px 14px #1d355b35,inset 0 4px 8px #ffffff55;display:grid;place-items:center;z-index:1;transition:filter .15s,transform .15s}
+.ball:hover{filter:brightness(1.08);transform:scale(1.1)}
+.ball.done{background:linear-gradient(145deg,#1cae78,#087b57)!important;box-shadow:0 0 0 4px #16a36a25,0 5px 12px #1d355b25}
+.ball:disabled{cursor:default;opacity:.85}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:750;background:var(--blue);color:white;box-shadow:0 5px 12px #4263eb2b}
+.btn.secondary{background:#e9efff;color:#304bb4;box-shadow:none}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn:disabled{opacity:.45;cursor:not-allowed}
+#modal{position:fixed;inset:0;background:#10223c99;display:none;align-items:center;justify-content:center;padding:16px;z-index:5;overflow:auto}
+#modal.show{display:flex}
+.dialog{width:min(680px,100%);max-height:94vh;overflow:auto;background:white;border-radius:22px;padding:23px;box-shadow:0 24px 70px #10223c55}
+.dialog-top{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.tag{display:inline-block;padding:5px 10px;border-radius:99px;background:#edf1ff;color:#4056b8;font-weight:750;font-size:.82rem}
+#question{font-size:1.2rem;line-height:1.55;margin:18px 0}
+.choice{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#f5f7fc;border:2px solid #e3e9f4;border-radius:13px;padding:12px;margin:8px 0;color:var(--ink)}
+.choice:hover{border-color:#8298ef}.choice:disabled{cursor:default}
+.choice.correct{background:#e8f8f0;border-color:#37b77d}.choice.wrong{background:#fff0f1;border-color:#e87989}
+.feedback{padding:13px 15px;border-radius:13px;margin:14px 0;background:#eef7ff;line-height:1.5}
+.feedback.good{background:#e9f8f0}.feedback.bad{background:#fff0f1}
+.teacher{border:2px dashed #e3b74d;border-radius:15px;padding:14px;background:#fffaf0;margin-top:14px}
+.teacher h3{margin:0 0 8px}.teacher p{margin:7px 0;line-height:1.5}
+.score-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.score-buttons button{flex:1;min-width:145px}
+.result{display:none;text-align:center;background:white;border:1px solid #e2eaf7;border-radius:22px;padding:28px;margin-top:20px;box-shadow:0 10px 30px #263b6410}
+.result.show{display:block}.result h2{font-size:2rem;color:#4258ca}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px auto;max-width:520px}
+.result-grid div{background:#f4f7ff;border-radius:13px;padding:13px}.result-grid small{display:block;color:var(--muted)}
+.final-score{font-size:3rem;font-weight:950;color:#16a36a}
+footer{text-align:center;color:var(--muted);font-size:.82rem;margin-top:22px}
+@media(max-width:600px){.app{padding:12px}.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:1.25rem}#arena{height:510px}.ball{width:49px;height:49px;font-size:.95rem}.dialog{padding:17px}.section-head{align-items:flex-start;flex-direction:column}.meta span{font-size:.8rem}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <p class="brand">🏀 BounceQuiz AI</p>
+  <p class="sub">Belajar sambil bermain — tantangan sistem pernapasan manusia!</p>
+  <div class="meta"><span>IPAS</span><span>Materi: Sistem Pernapasan Manusia</span><span>Kelas VI SD</span><span>Asesmen Formatif</span></div>
+</header>
+<section class="stats" aria-label="Progress permainan">
+  <div class="stat"><small>Terjawab</small><strong id="answered">0 / 15</strong><div class="progress-wrap"><div id="progress"></div></div></div>
+  <div class="stat"><small>Skor Benar (100 poin)</small><strong id="correctCount">0</strong></div>
+  <div class="stat"><small>Nilai Sementara</small><strong id="liveScore">0</strong></div>
+</section>
+<div class="section-head"><h2>🎯 Area Permainan</h2><span class="hint">Klik bola untuk membuka satu soal. Setiap bola hanya dapat digunakan sekali.</span></div>
+<div id="arena" aria-label="Area bola kuis"></div>
+<div class="actions">
+  <button class="btn secondary" id="soundToggle" type="button">🔊 Suara: Aktif</button>
+  <button class="btn secondary" id="instructions" type="button">❔ Petunjuk</button>
+</div>
+<section class="result" id="result">
+  <h2>🎉 BounceQuiz Selesai!</h2>
+  <p>Semua bola sudah dimainkan. Terus semangat belajar!</p>
+  <div class="result-grid">
+    <div><small>Jumlah Soal</small><strong>15</strong></div>
+    <div><small>Jawaban Benar</small><strong id="rCorrect">0</strong></div>
+    <div><small>Jawaban Salah</small><strong id="rWrong">0</strong></div>
+    <div><small>Sebagian Benar</small><strong id="rPartial">0</strong></div>
+    <div><small>Total Skor</small><strong id="rPoints">0 / 1.500</strong></div>
+    <div><small>Nilai Akhir</small><strong class="final-score" id="rGrade">0</strong></div>
+  </div>
+  <h3 id="message">Ayo terus belajar!</h3>
+  <button class="btn green" id="playAgain" type="button">↻ Main Lagi</button>
+</section>
+<footer>Guru menilai jawaban lisan melalui panel penilaian. Skor maksimal 1.500 poin.</footer>
+</main>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+ <div class="dialog">
+  <div class="dialog-top"><div><span class="tag" id="qTag">Bola 1 • Pilihan Ganda</span><h2 id="dialogTitle">Pertanyaan</h2></div><button class="btn secondary" id="closeModal" type="button" aria-label="Tutup">✕</button></div>
+  <p id="question"></p>
+  <div id="choices"></div>
+  <div id="oralStart" style="display:none">
+    <div class="feedback">🗣️ Bacakan atau sampaikan jawabanmu kepada guru. Setelah selesai, minta guru membuka panel penilaian.</div>
+    <button class="btn" id="showTeacher" type="button">Saya sudah menjawab — Penilaian Guru</button>
+  </div>
+  <div id="teacherPanel" class="teacher" style="display:none">
+    <h3>🔒 Panel Penilaian Guru</h3>
+    <p><b>Indikator jawaban:</b> <span id="indicator"></span></p>
+    <p><b>Contoh jawaban:</b> <span id="sample"></span></p>
+    <p><b>Rubrik:</b> 100 = sangat tepat; 50 = cukup tepat; 0 = belum tepat.</p>
+    <div class="score-buttons">
+      <button class="btn green" data-score="100" type="button">100 • Sangat Tepat</button>
+      <button class="btn" data-score="50" type="button">50 • Cukup Tepat</button>
+      <button class="btn red" data-score="0" type="button">0 • Belum Tepat</button>
+    </div>
+  </div>
+  <div id="feedback" class="feedback" style="display:none" aria-live="polite"></div>
+  <div class="actions" style="justify-content:flex-end"><button class="btn green" id="continue" type="button" style="display:none">Lanjutkan</button></div>
+ </div>
+</div>
+<script>
+"use strict";
+const questions = [
+ {type:"mc",level:"Mudah",q:"Apa fungsi utama sistem pernapasan manusia?",a:["Mengolah makanan menjadi energi","Mengambil oksigen dan mengeluarkan karbon dioksida","Memompa darah ke seluruh tubuh","Menyaring zat sisa dari darah"],correct:1,why:"Sistem pernapasan mengambil oksigen dari udara untuk digunakan tubuh dan mengeluarkan karbon dioksida sebagai zat sisa."},
+ {type:"mc",level:"Mudah",q:"Organ yang pertama kali dilalui udara saat kita bernapas melalui hidung adalah ....",a:["Trakea","Bronkus","Rongga hidung","Alveolus"],correct:2,why:"Udara masuk melalui rongga hidung. Di sana udara disaring, dihangatkan, dan dilembapkan."},
+ {type:"mc",level:"Mudah",q:"Cabang batang tenggorokan yang menuju paru-paru kanan dan kiri disebut ....",a:["Bronkus","Faring","Diafragma","Alveolus"],correct:0,why:"Trakea bercabang menjadi dua bronkus, masing-masing menuju paru-paru kanan dan kiri."},
+ {type:"mc",level:"Sedang",q:"Tempat terjadinya pertukaran oksigen dan karbon dioksida di paru-paru adalah ....",a:["Laring","Alveolus","Rongga hidung","Kerongkongan"],correct:1,why:"Alveolus berupa gelembung-gelembung kecil berdinding tipis yang dikelilingi pembuluh kapiler darah."},
+ {type:"mc",level:"Sedang",q:"Ketika menarik napas (inspirasi), diafragma akan ....",a:["Mengendur dan melengkung ke atas","Menegang dan bergerak mendatar ke bawah","Menutup saluran udara","Berhenti bergerak"],correct:1,why:"Saat inspirasi, diafragma berkontraksi, mendatar, dan bergerak ke bawah sehingga rongga dada membesar."},
+ {type:"mc",level:"Sedang",q:"Urutan jalannya udara yang benar setelah melewati rongga hidung adalah ....",a:["Faring–laring–trakea–bronkus","Trakea–faring–bronkus–laring","Laring–bronkus–faring–trakea","Bronkus–trakea–laring–faring"],correct:0,why:"Secara sederhana udara melewati rongga hidung, faring, laring, trakea, bronkus, bronkiolus, lalu alveolus."},
+ {type:"mc",level:"Sedang",q:"Gas yang dikeluarkan tubuh saat mengembuskan napas adalah ....",a:["Oksigen saja","Karbon dioksida dan uap air","Nitrogen saja","Hidrogen"],correct:1,why:"Udara yang diembuskan mengandung karbon dioksida dan uap air lebih banyak daripada udara yang dihirup."},
+ {type:"mc",level:"Sedang",q:"Kebiasaan yang paling baik untuk menjaga kesehatan organ pernapasan adalah ....",a:["Sering berada di dekat asap rokok","Membakar sampah di sekitar rumah","Berolahraga dan menghindari asap rokok","Jarang membuka jendela"],correct:2,why:"Olahraga teratur dan menghindari asap rokok membantu menjaga kesehatan paru-paru dan saluran pernapasan."},
+ {type:"mc",level:"Menantang",q:"Saat berlari, napas menjadi lebih cepat. Mengapa hal itu terjadi?",a:["Tubuh membutuhkan lebih banyak oksigen dan perlu membuang lebih banyak karbon dioksida","Paru-paru berhenti bekerja sementara","Tubuh tidak lagi membutuhkan oksigen","Diafragma tidak bergerak"],correct:0,why:"Otot bekerja lebih aktif saat berlari sehingga membutuhkan lebih banyak oksigen dan menghasilkan lebih banyak karbon dioksida."},
+ {type:"mc",level:"Menantang",q:"Seseorang mengalami penyempitan saluran pernapasan yang dapat menyebabkan sesak dan bunyi mengi. Gangguan yang mungkin dialami adalah ....",a:["Asma","Diare","Anemia","Maag"],correct:0,why:"Asma dapat menyebabkan saluran pernapasan menyempit dan meradang sehingga penderitanya sulit bernapas."},
+ {type:"mc",level:"Sedang",q:"Ketika mengembuskan napas (ekspirasi) secara normal, rongga dada cenderung ....",a:["Membesar","Mengecil","Tidak berubah sama sekali","Terisi makanan"],correct:1,why:"Saat ekspirasi normal, diafragma mengendur dan melengkung ke atas sehingga volume rongga dada mengecil."},
+ {type:"oral",level:"Mudah",q:"Sebutkan tiga organ atau bagian saluran pernapasan manusia secara berurutan dari tempat masuknya udara!",indicator:"Menyebutkan minimal tiga bagian dengan urutan benar, dimulai dari hidung, lalu bagian saluran berikutnya.",sample:"Hidung, faring, laring, trakea, bronkus, bronkiolus, dan alveolus."},
+ {type:"oral",level:"Sedang",q:"Jelaskan dengan bahasamu sendiri apa yang terjadi pada diafragma ketika kita menarik napas!",indicator:"Menjelaskan diafragma berkontraksi/menegang, mendatar atau bergerak ke bawah, sehingga rongga dada membesar.",sample:"Saat menarik napas, diafragma berkontraksi lalu bergerak turun dan mendatar. Rongga dada membesar sehingga udara masuk ke paru-paru."},
+ {type:"oral",level:"Sedang",q:"Apa yang terjadi di alveolus dan mengapa bagian ini penting bagi tubuh?",indicator:"Menyebutkan pertukaran gas: oksigen masuk ke darah dan karbon dioksida berpindah dari darah ke alveolus untuk dikeluarkan.",sample:"Di alveolus terjadi pertukaran gas. Oksigen masuk ke pembuluh darah, sedangkan karbon dioksida dari darah masuk ke alveolus untuk diembuskan."},
+ {type:"oral",level:"Menantang",q:"Sebutkan dua kebiasaan yang dapat menjaga kesehatan sistem pernapasan dan jelaskan alasannya!",indicator:"Menyebutkan dua tindakan tepat beserta alasan yang masuk akal, misalnya tidak merokok/menghindari asap, olahraga, memakai masker di tempat berdebu, menjaga kebersihan dan ventilasi.",sample:"Tidak merokok dan menghindari asap agar paru-paru tidak terpapar zat berbahaya; berolahraga teratur agar fungsi pernapasan terjaga."}
+];
+const colors=["#ef6a75","#4385dc","#8b62d9","#e89b35","#16a68a","#d45ca4","#4c9eae","#db7650","#6877d8","#7eaa42"];
+const arena=document.getElementById("arena"), modal=document.getElementById("modal");
+let balls=[],active=null,answered=new Set(),points=0,correct=0,wrong=0,partial=0,sound=true,raf=0,lastTime=0;
+let audioCtx=null;
+function beep(freq=520,duration=.09){if(!sound)return;try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(.07,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.start();o.stop(audioCtx.currentTime+duration)}catch(e){}}
+function updateStats(){const n=answered.size;document.getElementById("answered").textContent=n+" / 15";document.getElementById("correctCount").textContent=correct;document.getElementById("liveScore").textContent=Math.round(points/1500*100);document.getElementById("progress").style.width=(n/15*100)+"%";if(n===15)showResult()}
+function showResult(){document.getElementById("rCorrect").textContent=correct;document.getElementById("rWrong").textContent=wrong;document.getElementById("rPartial").textContent=partial;document.getElementById("rPoints").textContent=points+" / 1.500";const grade=Math.round(points/1500*100);document.getElementById("rGrade").textContent=grade;document.getElementById("message").textContent=grade>=90?"Luar biasa! Kamu sangat memahami sistem pernapasan manusia!":grade>=75?"Hebat! Terus tingkatkan pemahamanmu!":grade>=60?"Bagus! Tetap semangat belajar!":"Jangan menyerah! Ayo belajar dan mencoba lagi!";document.getElementById("result").classList.add("show");document.getElementById("result").scrollIntoView({behavior:"smooth",block:"center"});beep(760,.22)}
+function createBalls(){cancelAnimationFrame(raf);arena.innerHTML="";balls=[];const w=arena.clientWidth,h=arena.clientHeight,size=58;for(let i=0;i<15;i++){const el=document.createElement("button");el.className="ball";el.type="button";el.textContent=i+1;el.setAttribute("aria-label","Bola soal nomor "+(i+1));el.style.background=`linear-gradient(145deg,${colors[i%colors.length]},${colors[(i+3)%colors.length]})`;arena.appendChild(el);const b={el,x:Math.random()*Math.max(1,w-size),y:Math.random()*Math.max(1,h-size),vx:(Math.random()>.5?1:-1)*(45+Math.random()*48),vy:(Math.random()>.5?1:-1)*(42+Math.random()*55),size};el.addEventListener("click",()=>openQuestion(i));balls.push(b)}lastTime=0;raf=requestAnimationFrame(animate)}
+function animate(t){if(!lastTime)lastTime=t;const dt=Math.min((t-lastTime)/1000,.035);lastTime=t;const w=arena.clientWidth,h=arena.clientHeight;for(const b of balls){if(answered.has(Number(b.el.textContent)-1))continue;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.x<0){b.x=0;b.vx=Math.abs(b.vx)}if(b.x+b.size>w){b.x=w-b.size;b.vx=-Math.abs(b.vx)}if(b.y<0){b.y=0;b.vy=Math.abs(b.vy)}if(b.y+b.size>h){b.y=h-b.size;b.vy=-Math.abs(b.vy)}b.el.style.transform=`translate(${b.x}px,${b.y}px)`}raf=requestAnimationFrame(animate)}
+function openQuestion(i){if(answered.has(i)||active!==null)return;active=i;const q=questions[i];document.getElementById("qTag").textContent=`Bola ${i+1} • ${q.type==="mc"?"Pilihan Ganda":"Jawaban Lisan"} • ${q.level}`;document.getElementById("dialogTitle").textContent=q.type==="mc"?"Pilih jawaban yang paling tepat":"Jawab secara lisan";document.getElementById("question").textContent=q.q;const choices=document.getElementById("choices");choices.innerHTML="";document.getElementById("feedback").style.display="none";document.getElementById("continue").style.display="none";document.getElementById("teacherPanel").style.display="none";document.getElementById("oralStart").style.display=q.type==="oral"?"block":"none";
+if(q.type==="mc"){q.a.forEach((v,j)=>{const btn=document.createElement("button");btn.className="choice";btn.type="button";btn.innerHTML=`<b>${"ABCD"[j]}.</b> <span></span>`;btn.querySelector("span").textContent=v;btn.addEventListener("click",()=>gradeMC(j));choices.appendChild(btn)})}
+modal.classList.add("show");beep(600)}
+function feedback(text,good){const f=document.getElementById("feedback");f.textContent=text;f.className="feedback "+(good?"good":"bad");f.style.display="block";document.getElementById("continue").style.display="inline-block"}
+function finishQuestion(score,explanation,kind){if(active===null||answered.has(active))return;answered.add(active);points+=score;if(score===100)correct++;else if(score===50)partial++;else wrong++;const b=balls[active];b.el.classList.add("done");b.el.disabled=true;b.el.textContent="✓";document.querySelectorAll("#choices button").forEach(x=>x.disabled=true);document.getElementById("oralStart").style.display="none";document.getElementById("teacherPanel").style.display="none";feedback(explanation,score===100);updateStats();beep(score===100?820:score===50?540:260,.16)}
+function gradeMC(j){const q=questions[active],ok=j===q.correct;const opts=[...document.querySelectorAll("#choices .choice")];opts[q.correct].classList.add("correct");if(!ok)opts[j].classList.add("wrong");finishQuestion(ok?100:0,(ok?"Benar! ":"Belum tepat. Jawaban yang benar adalah "+ "ABCD"[q.correct]+". ")+q.why, "mc")}
+document.getElementById("showTeacher").addEventListener("click",()=>{const q=questions[active];document.getElementById("indicator").textContent=q.indicator;document.getElementById("sample").textContent=q.sample;document.getElementById("teacherPanel").style.display="block";document.getElementById("oralStart").style.display="none"});
+document.querySelectorAll("[data-score]").forEach(btn=>btn.addEventListener("click",()=>{const score=Number(btn.dataset.score);const msg=score===100?"Jawaban dinilai sangat tepat. Hebat!":score===50?"Jawaban sudah memuat sebagian informasi yang benar. Terus berlatih!":"Jawaban belum tepat. Ayo pelajari kembali pembahasannya bersama guru.";finishQuestion(score,msg,"oral")}));
+document.getElementById("continue").addEventListener("click",()=>{modal.classList.remove("show");active=null;if(answered.size===15)showResult()});
+function close(){if(active!==null&&!answered.has(active))return;modal.classList.remove("show");active=null}
+document.getElementById("closeModal").addEventListener("click",close);
+document.getElementById("instructions").addEventListener("click",()=>{alert("Petunjuk bermain:\\n1. Klik salah satu bola bernomor.\\n2. Untuk pilihan ganda, pilih A–D.\\n3. Untuk jawaban lisan, sampaikan jawaban kepada guru.\\n4. Guru membuka panel penilaian dan memilih skor 100, 50, atau 0.\\n5. Setiap bola hanya dapat dimainkan satu kali. Selesaikan semua 15 bola!")});
+document.getElementById("soundToggle").addEventListener("click",e=>{sound=!sound;e.currentTarget.textContent=sound?"🔊 Suara: Aktif":"🔇 Suara: Mati";if(sound)beep()});
+document.getElementById("playAgain").addEventListener("click",()=>{answered=new Set();points=0;correct=0;wrong=0;partial=0;active=null;document.getElementById("result").classList.remove("show");updateStats();createBalls();window.scrollTo({top:0,behavior:"smooth"})});
+window.addEventListener("resize",()=>{for(const b of balls){b.x=Math.min(b.x,Math.max(0,arena.clientWidth-b.size));b.y=Math.min(b.y,Math.max(0,arena.clientHeight-b.size))}});
+createBalls();updateStats();
+</script>
+</body>
+</html>
